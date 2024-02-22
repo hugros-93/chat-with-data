@@ -1,0 +1,150 @@
+/* Colors */
+:root {
+    --black: black;
+    --white: white;
+    --gray: gray;
+    --background_gray: #e4e6e6;
+    --green: #00b050;
+    --light-green: #90e990;
+    --yellow: #ffc82f;
+    --orange: #f37021;
+    --red: #ff0000;
+
+    --color-0: #1319cb;
+    --color-1: #ff7f0e;
+    --color-2: #2ca02c;
+    --color-3: #d62728;
+    --color-4: #9467bd;
+    --color-5: #8c564b;
+    --color-6: #e377c2;
+    --color-7: #7f7f7f;
+    --color-8: #bcbd22;
+    --color-9: #17becf;
+
+    --color-1-hover: #ffd1aa;
+    --color-2-hover: #90e990;
+}
+
+/* Body and text style */
+body {
+    font-family: "Helvetica", sans-serif;
+    background-color: var(--background_gray);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--black);
+}
+
+hr {
+    color: var(--black);
+}
+
+/* Cards */
+.div-white-border-radius {
+    border-radius: 15px;
+    background-color: var(--white);
+}
+
+/* Hide general scrollbar */
+body::-webkit-scrollbar {
+    width: 0px;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}
+
+/* Navigation */
+.nav-pills .nav-link.active {
+    background-color: var(--color-0);
+    text-decoration: underline;
+}
+
+/* Button (primary) */
+.btn-primary {
+    background-color: var(--green);
+    border-color: var(--green);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: var(--light-green);
+    border-color: var(--light-green);
+    color: var(--white);
+}
+
+.btn-primary:disabled {
+    background-color: var(--color-7);
+    border-color: var(--color-7);
+    color: var(--white);
+}
+
+/* Button (secondary) */
+.btn-secondary {
+    background-color: var(--color-2);
+    border-color: var(--color-2);
+    color: var(--color-0);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-2-hover);
+    border-color: var(--color-2-hover);
+    color: var(--color-0);
+}
+
+.btn-secondary:disabled {
+    background-color: var(--color-7);
+    border-color: var(--color-7);
+    color: var(--white);
+}
+
+/* Button (outline) */
+.btn-outline-primary {
+    border-color: var(--color-0);
+    color: var(--color-0);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--color-0);
+    border-color: var(--color-0);
+    color: var(--white);
+}
+
+.btn-outline-primary:disabled {
+    background-color: var(--color-3);
+    border-color: var(--color-3);
+    color: var(--white);
+}
+
+/* Navigation */
+.nav-pills .nav-link.active {
+    background-color: var(--gray);
+    text-decoration: underline;
+}
+
+/* Tabs */
+.nav-link {
+    border-color: var(--black);
+    color: var(--black);
+}
+.nav-link:hover {
+    border-color: var(--black);
+    color: var(--black);
+}
+
+.nav-link.active {
+    border-color: var(--black);
+    color: var(--black);
+}
+
+/* Tables */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td,
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    text-align: center;
+    width: 20%
+}

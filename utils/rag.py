@@ -35,8 +35,8 @@ class DocStore:
 
     def split(self):
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=500,
+            chunk_size=500,
+            chunk_overlap=250,
             length_function=len,
             add_start_index=True,
         )
@@ -64,7 +64,7 @@ class DocSearch:
             persist_directory=self.chroma_path, embedding_function=self.embedding
         )
 
-    def get_results(self, question_string, k=3, thresold=None):
+    def get_results(self, question_string, k, thresold):
         results = self.db.similarity_search_with_relevance_scores(question_string, k=k)
         if thresold == None:
             thresold = 0.0
@@ -101,8 +101,8 @@ class DocSearch:
         answer = model.invoke(prompt)
         return answer.content
 
-    def ask(self, question, k=3, thresold=None):
-        results = self.get_results(question, k=k, thresold=thresold)
+    def ask(self, question, k=5, thresold=None):
+        results = self.get_results(question, k, thresold)
         prompt = self.get_prompt(question, results)
         answer = self.get_answer(prompt)
         references = [
