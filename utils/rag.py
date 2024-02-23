@@ -65,10 +65,12 @@ class DocSearch:
         )
 
     def get_results(self, question_string, k, thresold):
+        if k == None:
+            k = len(self.db.get()['ids'])
         results = self.db.similarity_search_with_relevance_scores(question_string, k=k)
         if thresold == None:
             thresold = 0.0
-        if len(results) == 0 or results[0][1] < thresold:
+        if len(results) == 0:
             raise Exception("No results.")
         else:
             results = [x for x in results if x[1] >= thresold]
@@ -81,13 +83,13 @@ class DocSearch:
         context_string = "\n\n---\n\n".join([doc.page_content for doc, _ in results])
 
         PROMPT_TEMPLATE = """
-        Answer the question based only on the following context:
+        Answer the question by writing a quick summary based only on the following context:
 
         {context}
 
 
         ---
-        Answerthe question based on the above context: {question}
+        Answer the question by writing a quick summary based on the above context: {question}
         """
 
         prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
@@ -101,7 +103,7 @@ class DocSearch:
         answer = model.invoke(prompt)
         return answer.content
 
-    def ask(self, question, k=5, thresold=None):
+    def ask(self, question, k=None, thresold=None):
         results = self.get_results(question, k, thresold)
         prompt = self.get_prompt(question, results)
         answer = self.get_answer(prompt)

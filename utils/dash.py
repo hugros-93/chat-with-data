@@ -49,3 +49,23 @@ class DashboardColors:
         "#0c065c",
         "#1b232a",
     ]
+
+
+def get_formatted_references(references):
+    references_output = html.Div(
+        dbc.Accordion(
+            [
+                dbc.AccordionItem(
+                    [
+                        dcc.Markdown(f'__Text__: _"{ref["text"]}"_'),
+                        dcc.Markdown(f'__Source__: {ref["source"]}'),
+                        dcc.Markdown(f'__Page__: {ref["page"]}'),
+                    ],
+                    title=f"Reference #{i+1} (score: {round(ref['score'], 2)})",
+                )
+                for i, ref in enumerate(references)
+            ],
+            start_collapsed=True,
+        ),
+    )
+    return references_output

@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 
 import json
 
-from utils.dash import DashboardColors
+from utils.dash import DashboardColors, get_formatted_references
 from utils.rag import DocStore, DocSearch
 
 # Plotly template
@@ -68,7 +68,14 @@ input_content = html.Div(
     ]
 )
 
-output_content = [html.Hr(), html.H3("Response"), html.Div(id="response")]
+output_content = [
+    html.Hr(),
+    html.H3("Answer"),
+    html.Div(id="answer"),
+    html.Br(),
+    html.H3("References"),
+    html.Div(id="references"),
+]
 
 
 CONTENT_STYLE = {"margin-left": "1rem", "margin-right": "1rem", "padding": "1rem"}
@@ -84,11 +91,14 @@ content = html.Div(
 # Layout
 app.layout = html.Div([header, content])
 
+# Create search instance
+search = DocSearch()
 
 @app.callback(
     [
         Output("output", "style"),
-        Output("response", "children"),
+        Output("answer", "children"),
+        Output("references", "children"),
         Output("button-submit", "children"),
     ],
     inputs=[Input("button-submit", "n_clicks")],
@@ -97,17 +107,10 @@ app.layout = html.Div([header, content])
 )
 def ask_question(n_clicks, question):
     if n_clicks:
-        search = DocSearch()
-        answer, references = search.ask(question)
-        output_text = f"__Answer__: {answer}\n\n"
-        output_text += "__References__:"
-        for ref in references:
-            text_sample = ref["text"].replace("\n", " ")[:100]
-            output_text += f'\n- "...{text_sample}..." (source: {ref["source"]}, page: {ref["page"]}, score: {ref["score"]})'
-        output = html.Div(
-            dcc.Markdown(output_text),
-        )
-        return [{"visibility": "visible"}, output, "Submit"]
+        answer, references = search.ask(question, k=25, thresold=0.6)
+        answer_output = dcc.Markdown(f"__Answer__: {answer}")
+        references_output = get_formatted_references(references)
+        return [{"visibility": "visible"}, answer_output, references_output, "Submit"]
     else:
         raise PreventUpdate
 
