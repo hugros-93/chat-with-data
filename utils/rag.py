@@ -1,5 +1,6 @@
 import os
 import shutil
+import pandas as pd
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -31,11 +32,11 @@ class DocStore:
         )
         docs = loader.load()
         self.docs = docs
-        print(f"> {len(self.docs)} document loaded.")
+        print(f"> {len(self.docs)} documents loaded.")
 
     def split(self):
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
+            chunk_size=1500,
             chunk_overlap=250,
             length_function=len,
             add_start_index=True,
@@ -64,9 +65,19 @@ class DocSearch:
             persist_directory=self.chroma_path, embedding_function=self.embedding
         )
 
+    def get_db_summary(self):
+        db_content = self.db.get()
+        db_metadatas = db_content["metadatas"]
+        list_sources = pd.unique([m["source"] for m in db_metadatas])
+        dict_source = {}
+        for source in list_sources:
+            nb_pages = max([m["page"] for m in db_metadatas if m["source"] == source])
+            dict_source[source] = {"nb_pages": nb_pages}
+        return {"number_splits": len(db_content), "sources": dict_source}
+
     def get_results(self, question_string, k, thresold):
         if k == None:
-            k = len(self.db.get()['ids'])
+            k = len(self.db.get()["ids"])
         results = self.db.similarity_search_with_relevance_scores(question_string, k=k)
         if thresold == None:
             thresold = 0.0
@@ -110,8 +121,7 @@ class DocSearch:
         references = [
             {
                 "score": r[1],
-                "source": r[0].metadata["source"],
-                "page": r[0].metadata["page"],
+                "metadata": r[0].metadata,
                 "text": r[0].page_content,
             }
             for r in results

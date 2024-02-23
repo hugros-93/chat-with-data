@@ -84,6 +84,13 @@ body::-webkit-scrollbar-thumb {
     color: var(--white);
 }
 
+.btn-primary:active {
+    background-color: var(--green) !important;
+    border-color: var(--green) !important;
+    color: var(--white) !important;
+}
+
+
 /* Button (secondary) */
 .btn-secondary {
     background-color: var(--color-2);
@@ -101,6 +108,12 @@ body::-webkit-scrollbar-thumb {
     background-color: var(--color-7);
     border-color: var(--color-7);
     color: var(--white);
+}
+
+.btn-secondary {
+    background-color: var(--color-2) !important;
+    border-color: var(--color-2) !important;
+    color: var(--color-0) !important;
 }
 
 /* Button (outline) */

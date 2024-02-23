@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 
 import json
 
-from utils.dash import DashboardColors, get_formatted_references
+from utils.dash import DashboardColors, get_formatted_references, get_formatted_data
 from utils.rag import DocStore, DocSearch
 
 # Plotly template
@@ -19,6 +19,10 @@ pio.templates.default = "plotly_template"
 
 # Dash params
 DASHBOARD_NAME = "Chat with data"
+
+# Create search instance
+search = DocSearch()
+db_summary = search.get_db_summary()
 
 # Dash app
 app = Dash(
@@ -48,39 +52,50 @@ header = html.Div(
 )
 
 # Content
+data_content = html.Div(
+    [
+        html.H3("Data"),
+        dcc.Markdown(f"_Total of splits: {db_summary['number_splits']}_"),
+        get_formatted_data(db_summary["sources"]),
+    ]
+)
+
 input_content = html.Div(
     [
-        html.H3("Ask your data"),
+        html.Hr(),
+        html.H3("Question"),
         dbc.Textarea(id="text-input", placeholder="Write your question here"),
         html.Br(),
-        dcc.Loading(
-            type="circle",
-            color=DashboardColors.black,
-            children=dbc.Button(
-                "Submit",
-                id="button-submit",
-                color="primary",
-                className="me-1",
-                n_clicks=0,
-                disabled=False,
-            ),
+        dbc.Button(
+            "Submit",
+            id="button-submit",
+            color="primary",
+            className="me-1",
+            n_clicks=0,
+            disabled=False,
         ),
     ]
 )
 
-output_content = [
-    html.Hr(),
-    html.H3("Answer"),
-    html.Div(id="answer"),
-    html.Br(),
-    html.H3("References"),
-    html.Div(id="references"),
-]
+output_content = dcc.Loading(
+    type="circle",
+    color=DashboardColors.black,
+    children=[
+        html.Hr(),
+        html.H3("Answer"),
+        html.Div(id="answer"),
+        html.Hr(),
+        html.H3("References"),
+        dcc.Markdown("_List of the top 5 references found in the data._"),
+        html.Div(id="references"),
+    ],
+)
 
 
 CONTENT_STYLE = {"margin-left": "1rem", "margin-right": "1rem", "padding": "1rem"}
 content = html.Div(
     [
+        html.Div(data_content),
         html.Div(input_content, id="input"),
         html.Div(output_content, id="output", style={"visibility": "hidden"}),
     ],
@@ -91,15 +106,13 @@ content = html.Div(
 # Layout
 app.layout = html.Div([header, content])
 
-# Create search instance
-search = DocSearch()
 
+# Callback submit question
 @app.callback(
     [
         Output("output", "style"),
         Output("answer", "children"),
         Output("references", "children"),
-        Output("button-submit", "children"),
     ],
     inputs=[Input("button-submit", "n_clicks")],
     state=[State("text-input", "value")],
@@ -107,10 +120,10 @@ search = DocSearch()
 )
 def ask_question(n_clicks, question):
     if n_clicks:
-        answer, references = search.ask(question, k=25, thresold=0.6)
+        answer, references = search.ask(question, k=15, thresold=0.6)
         answer_output = dcc.Markdown(f"__Answer__: {answer}")
-        references_output = get_formatted_references(references)
-        return [{"visibility": "visible"}, answer_output, references_output, "Submit"]
+        references_output = get_formatted_references(references, limit=5)
+        return [{"visibility": "visible"}, answer_output, references_output]
     else:
         raise PreventUpdate
 
