@@ -94,3 +94,47 @@ def get_formatted_data(dict_source):
         ),
     )
     return data_output
+
+
+def get_header_buttons():
+    return dbc.Col(
+        html.Div(
+            [
+                dcc.Loading(
+                    id="loading-state-load-data",
+                    type="circle",
+                    color=DashboardColors.green,
+                    children=dcc.Upload(
+                        dbc.Button(
+                            "📥 Load data",
+                            id="button-load-data",
+                            color="primary",
+                            className="me-1",
+                            n_clicks=0,
+                            disabled=False,
+                        ),
+                        id="upload-file",
+                        multiple=True,
+                    ),
+                ),
+                html.P(id="output-load-data"),
+                dbc.Modal(
+                    [
+                        dbc.ModalBody("Data successfully loaded!"),
+                        dbc.ModalFooter(
+                            dbc.Button(
+                                "Close",
+                                id="button-modal-load-data",
+                                className="ms-auto",
+                                n_clicks=0,
+                            )
+                        ),
+                    ],
+                    id="modal-load-data",
+                    is_open=False,
+                ),
+            ],
+            className="d-grid gap-2 d-md-flex justify-content-md-end",
+        ),
+        width=True,
+    )

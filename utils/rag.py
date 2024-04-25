@@ -21,13 +21,14 @@ class DocStore:
         self.data_path = DATA_PATH
         self.chroma_path = CHROMA_PATH
         self.embedding = EMBEDDING
+        self.openai_key = os.environ.get("OPENAI_KEY")
 
     def load(self):
         loader = DirectoryLoader(
             self.data_path,
             glob="*.pdf",
             show_progress=True,
-            use_multithreading=False,
+            use_multithreading=True,
             loader_cls=PyPDFLoader,
         )
         docs = loader.load()
@@ -36,7 +37,7 @@ class DocStore:
 
     def split(self):
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500,
+            chunk_size=1000,
             chunk_overlap=250,
             length_function=len,
             add_start_index=True,
@@ -48,19 +49,13 @@ class DocStore:
         if os.path.exists(self.chroma_path):
             shutil.rmtree(self.chroma_path)
 
-        db = Chroma.from_documents(
+        self.db = Chroma.from_documents(
             self.splits, self.embedding, persist_directory=self.chroma_path
         )
 
-        db.persist()
         print(f"> Vector DB created ('{self.chroma_path}')")
 
-
-class DocSearch:
-    def __init__(self) -> None:
-        self.chroma_path = CHROMA_PATH
-        self.embedding = EMBEDDING
-        self.openai_key = os.environ.get("OPENAI_KEY")
+    def connect(self):
         self.db = Chroma(
             persist_directory=self.chroma_path, embedding_function=self.embedding
         )
@@ -69,11 +64,17 @@ class DocSearch:
         db_content = self.db.get()
         db_metadatas = db_content["metadatas"]
         list_sources = pd.unique([m["source"] for m in db_metadatas])
-        dict_source = {}
-        for source in list_sources:
-            nb_pages = max([m["page"] for m in db_metadatas if m["source"] == source])
-            dict_source[source] = {"nb_pages": nb_pages}
-        return {"number_splits": len(db_content), "sources": dict_source}
+        if list_sources == [] or len(db_metadatas) == 0:
+            print(db_content)
+            raise Exception("No source loaded yet")
+        else:
+            dict_source = {}
+            for source in list_sources:
+                nb_pages = max(
+                    [m["page"] for m in db_metadatas if m["source"] == source]
+                )
+                dict_source[source] = {"nb_pages": nb_pages}
+            return {"number_splits": len(db_metadatas), "sources": dict_source}
 
     def get_results(self, question_string, k, thresold):
         if k == None:
@@ -127,17 +128,3 @@ class DocSearch:
             for r in results
         ]
         return answer, references
-
-
-if __name__ == "__main__":
-    # Create store
-    store = DocStore()
-    store.load()
-    store.split()
-    store.create_vector_db()
-
-    # Show of split
-    split_example = store.splits[10]
-    print("Example of split:")
-    print(split_example.page_content)
-    print(split_example.metadata)

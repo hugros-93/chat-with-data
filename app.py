@@ -6,10 +6,17 @@ import dash_bootstrap_components as dbc
 import plotly.io as pio
 import plotly.graph_objects as go
 
+import os
 import json
+import base64
 
-from utils.dash import DashboardColors, get_formatted_references, get_formatted_data
-from utils.rag import DocStore, DocSearch
+from utils.dash import (
+    DashboardColors,
+    get_formatted_references,
+    get_formatted_data,
+    get_header_buttons,
+)
+from utils.rag import DocStore
 
 # Plotly template
 with open("assets/template.json", "r") as f:
@@ -19,10 +26,6 @@ pio.templates.default = "plotly_template"
 
 # Dash params
 DASHBOARD_NAME = "Chat with data"
-
-# Create search instance
-search = DocSearch()
-db_summary = search.get_db_summary()
 
 # Dash app
 app = Dash(
@@ -38,11 +41,19 @@ app._favicon = "logo.png"
 # Server
 server = app.server
 
+# Langchain Doc Store
+store = DocStore()
+
 # Header
 title = html.H1(f"{DASHBOARD_NAME}", style={"color": DashboardColors.white})
 
 header = html.Div(
-    title,
+    [
+        dbc.Stack(
+            [title, get_header_buttons()],
+            direction="horizontal",
+        )
+    ],
     style={
         "padding": "1rem",
         "background-color": DashboardColors.black,
@@ -52,13 +63,7 @@ header = html.Div(
 )
 
 # Content
-data_content = html.Div(
-    [
-        html.H3("Data"),
-        dcc.Markdown(f"_Total of splits: {db_summary['number_splits']}_"),
-        get_formatted_data(db_summary["sources"]),
-    ]
-)
+data_content = html.Div(id="data-content")
 
 input_content = html.Div(
     [
@@ -107,6 +112,54 @@ content = html.Div(
 app.layout = html.Div([header, content])
 
 
+# Callback load data
+@app.callback(
+    [
+        Output("button-load-data", "value"),
+        Output("output-load-data", "children"),
+        Output("data-content", "children"),
+    ],
+    Input("upload-file", "contents"),
+    Input("upload-file", "filename"),
+)
+def load_data(contents, filenames):
+    if contents == None:
+        print("> No data to load!")
+        data_content = [html.H3("Data"), dcc.Markdown(f"_Please load data first..._")]
+        return ["Load data", False, data_content]
+    else:
+        # Clean input files
+        for filename in os.listdir("data/"):
+            file_path = os.path.join("data/", filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        # Load files
+        for i, filename in enumerate(filenames):
+            _, content_string = contents[i].split(",")
+            decoded = base64.b64decode(content_string)
+            if ".pdf" not in filename:
+                print(f"> {filename} is not a .pdf")
+            else:
+                # Save data
+                print(f"> Saving {filename}")
+                with open(f"data/{filename}", "wb") as f:
+                    f.write(decoded)
+        # Create store
+        print(f"> Creating store")
+        store.load()
+        store.split()
+        store.create_vector_db()
+        # Load data
+        print(f"> Loading data")
+        db_summary = store.get_db_summary()
+        data_content = [
+            html.H3("Data"),
+            dcc.Markdown(f"_Total of splits: {db_summary['number_splits']}_"),
+            get_formatted_data(db_summary["sources"]),
+        ]
+        return ["Load data", True, data_content]
+
+
 # Callback submit question
 @app.callback(
     [
@@ -120,7 +173,7 @@ app.layout = html.Div([header, content])
 )
 def ask_question(n_clicks, question):
     if n_clicks:
-        answer, references = search.ask(question, k=15, thresold=0.6)
+        answer, references = store.ask(question, k=15, thresold=0.6)
         answer_output = dcc.Markdown(f"__Answer__: {answer}")
         references_output = get_formatted_references(references, limit=5)
         return [{"visibility": "visible"}, answer_output, references_output]
