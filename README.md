@@ -9,13 +9,14 @@ The app in this report will allow you to:
 - load PDF file(s)
 - transform and store these files into a document store
 - use natural language to ask questions and generate answers based on the files you loaded
-- generate references used to answer you
+- generate references used to answer your question
 
 ## Setup
 In order to run the app, you need to follow these steps:
 - create a virtual environemnt
 - install requirements using the `requirements.txt` file
 - add your OpenAI key as a local env variable `OPENAI_KEY`
+- run the app using `python app.py` command inside the virtual environment
 
 ## Repo structure
 Overview of the folders and files in this repo:
