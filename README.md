@@ -1,6 +1,9 @@
 # Chat with your data
 This repo contains a dash app that you can run locally to chat with your data using OpenAI API.
 
+![screenshot](assets/screenshot.png)
+![screenshot](assets/screenshot2.png)
+
 ## Overview
 The app in this report will allow you to:
 - load PDF file(s)
@@ -19,7 +22,7 @@ Overview of the folders and files in this repo:
 - `app.py`: the main file to run the app
 - `requirements.txt`: list of python requirements
 - `utils/`: utility python functions for RAGs and Dash app
-- `assets/`: assets for the dash app
+- `assets/`: assets for this project
 - `chroma/`: where ChromaDB files will be created
 - `data/`: where the pdf files you load will be stored
-- `mooc/`: some usefull ressources from the MOOC [Chat with your data](https://www.deeplearning.ai/short-courses/langchain-chat-with-your-data) from deeplearnin.ai
+- `mooc/`: some usefull ressources from the MOOC [Chat with your data](https://www.deeplearning.ai/short-courses/langchain-chat-with-your-data) from deeplearning.ai
